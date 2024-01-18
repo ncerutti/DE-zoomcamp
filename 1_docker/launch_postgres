@@ -1,0 +1,69 @@
+services:
+    postgres:
+        image: postgres:13
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        volumes:
+            - ./ny_taxi_postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: always
+
+
+docker run -it \
+    -e POSTGRES_USER=root \
+    -e POSTGRES_PASSWORD=root \
+    -e POSTGRES_DB="ny_taxi" \
+    -v ny_taxi_postgres_data:/var/lib/postgresql/data \
+    -p 5432:5432 \
+    postgres:13
+
+
+https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet
+https://www.nyc.gov/assets/tlc/downloads/pdf/data_dictionary_trip_records_yellow.pdf
+https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv
+
+
+### LAUNCH pgAdmin
+
+docker pull dpage/pgadmin4
+
+docker run -it \
+    -p 8080:80 \
+    -e "PGADMIN_DEFAULT_EMAIL=admin@admin.com" \
+    -e "PGADMIN_DEFAULT_PASSWORD=root" \
+    dpage/pgadmin4
+
+
+### Create network
+
+docker network create postgretwork
+
+
+### Launch postgres with network
+
+docker run -it \
+    -e POSTGRES_USER=root \
+    -e POSTGRES_PASSWORD=root \
+    -e POSTGRES_DB="ny_taxi" \
+    -v ny_taxi_postgres_data:/var/lib/postgresql/data \
+    -p 5432:5432 \
+    --network postgretwork \
+    --name postgres-db \
+    postgres:13
+
+
+### Launch pgAdmin with network
+
+docker run -it \
+    -p 8080:80 \
+    -e "PGADMIN_DEFAULT_EMAIL=admin@admin.com" \
+    -e "PGADMIN_DEFAULT_PASSWORD=root" \
+    --network postgretwork \
+    --name postgres-pgadmin \
+    dpage/pgadmin4
