@@ -23,14 +23,19 @@ def main(params):
     # for pandas to be able to open the file
     if url.endswith('.csv.gz'):
         csv_name = 'output.csv.gz'
-    else:
+    elif url.endswith('.csv'):
         csv_name = 'output.csv'
+    else:
+        csv_name = 'output.parquet'
 
     os.system(f"wget {url} -O {csv_name}")
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
-    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
+    if url.endswith('.csv.gz') or url.endswith('.csv'):
+        df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
+    else:
+        df_iter = pd.read_parquet(csv_name, iterator=True, chunksize=100000)
 
     df = next(df_iter)
 
