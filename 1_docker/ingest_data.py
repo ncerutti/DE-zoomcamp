@@ -18,7 +18,7 @@ def main(params):
     db = params.db
     table_name = params.table_name
     url = params.url
-    
+
     # the backup files are gzipped, and it's important to keep the correct extension
     # for pandas to be able to open the file
     if url.endswith('.csv.gz'):
@@ -28,44 +28,52 @@ def main(params):
     else:
         csv_name = 'output.parquet'
 
-    os.system(f"wget {url} -O {csv_name}")
+    if not os.path.exists(csv_name):
+        os.system(f"wget {url} -O {csv_name}")
+
+    print(f"ingesting data from {csv_name} into postgres")
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
     if url.endswith('.csv.gz') or url.endswith('.csv'):
         df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
     else:
-        df_iter = pd.read_parquet(csv_name, iterator=True, chunksize=100000)
+        df_iter = pd.read_parquet(csv_name)
 
-    df = next(df_iter)
+    if url.endswith('.csv.gz') or url.endswith('.csv'):
+        df = next(df_iter)
 
-    df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-    df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
+        df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
+        df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
 
-    df.head(n=0).to_sql(name=table_name, con=engine, if_exists='replace')
+        df.head(n=0).to_sql(name=table_name, con=engine, if_exists='replace')
 
-    df.to_sql(name=table_name, con=engine, if_exists='append')
+        df.to_sql(name=table_name, con=engine, if_exists='append')
 
+        while True: 
 
-    while True: 
+            try:
+                t_start = time()
 
-        try:
-            t_start = time()
-            
-            df = next(df_iter)
+                df = next(df_iter)
 
-            df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-            df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
+                df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
+                df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
 
-            df.to_sql(name=table_name, con=engine, if_exists='append')
+                df.to_sql(name=table_name, con=engine, if_exists='append')
 
-            t_end = time()
+                t_end = time()
 
-            print('inserted another chunk, took %.3f second' % (t_end - t_start))
+                print('inserted another chunk, took %.3f second' % (t_end - t_start))
 
-        except StopIteration:
-            print("Finished ingesting data into the postgres database")
-            break
+            except StopIteration:
+                print("Finished ingesting data into the postgres database")
+                break
+    else:
+        df_iter.to_sql(name=table_name, con=engine, if_exists='replace')
+        df_iter.head(n=0).to_sql(name=table_name, con=engine, if_exists='replace')
+        df_iter.to_sql(name=table_name, con=engine, if_exists='append')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ingest CSV data to Postgres')
