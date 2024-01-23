@@ -16,3 +16,9 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "8080:80"
+  # The ingestion thing would more or less work (but I would need to add the args to be passed to the script)
+  # ingest:
+  #   image: taxi_ingest
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
