@@ -1,3 +1,7 @@
 *.parquet
 .venv/
 *secret.json
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
