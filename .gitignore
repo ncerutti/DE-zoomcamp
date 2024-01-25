@@ -8,3 +8,6 @@
 
 .terraform/
 homework*.txt
+
+*.csv
+*.gz
