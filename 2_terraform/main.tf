@@ -8,14 +8,14 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("./keys/dezoom-terrasecret.json")
+  credentials = file(var.credentials_path)
   project     = "dezoom-412200"
-  region      = "europe-west2"
+  region      = var.region
 }
 
 resource "google_storage_bucket" "dezoom_bucket" {
-  name          = "bucket-dezoom-412200"
-  location      = "EU"
+  name          = var.gcs_bucket_name
+  location      = var.location
   storage_class = "STANDARD"
   force_destroy = true
 
@@ -27,4 +27,9 @@ resource "google_storage_bucket" "dezoom_bucket" {
       type = "AbortIncompleteMultipartUpload"
     }
   }
+}
+
+resource "google_bigquery_dataset" "dataset-dezoom" {
+  dataset_id = var.bq_dataset_name
+  location   = var.location
 }
