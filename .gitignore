@@ -11,3 +11,5 @@ homework*.txt
 
 *.csv
 *.gz
+
+__pycache__/
