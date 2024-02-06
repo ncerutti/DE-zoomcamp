@@ -5,10 +5,7 @@ if 'test' not in globals():
 
 def camel_to_snake(name):
     import re
-    # First, insert underscores before uppercase letters followed by lowercase letters
     s1 = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
-    # Then, adjust for the case where a lowercase letter is followed by uppercase letters
-    # and convert to lowercase
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
