@@ -188,3 +188,5 @@ scratch*
 magic-zoomcamp
 *.json
 *.csv
+
+*playground*.ipynb
