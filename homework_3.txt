@@ -1,0 +1,35 @@
+queries:
+
+- SELECT COUNT(*) FROM `dezoom-412200.ny_taxi.hw3_nat` WHERE fare_amount = 0;
+
+- CREATE OR REPLACE TABLE `dezoom-412200.ny_taxi.hw3_optimized`
+PARTITION BY DATE(lpep_pickup_datetime)
+CLUSTER BY PULocationID
+AS
+SELECT *
+FROM `dezoom-412200.ny_taxi.hw3_nat`;
+
+to run this, I had to recast the date as:
+
+CREATE OR REPLACE TABLE `dezoom-412200.ny_taxi.hw3-natok`
+AS
+SELECT 
+    *,
+    -- Assuming lpep_dropoff_datetime is an integer representing nanoseconds
+    TIMESTAMP_MICROS(CAST(lpep_pickup_datetime / 1000 AS INT64)) AS lpep_dropoff_datetime_corrected
+FROM 
+    `dezoom-412200.ny_taxi.hw3-nat`;
+	
+please do not worry for me because I called lpep_dropof_datetime_corrected something that was pickup times instead -_- I guess I was tired!
+
+- SELECT DISTINCT PULocationID
+FROM `dezoom-412200.ny_taxi.hw3-optimized`
+WHERE DATE(lpep_dropoff_datetime_corrected) BETWEEN '2022-06-01' AND '2022-06-30';
+
+SELECT DISTINCT PULocationID
+FROM `dezoom-412200.ny_taxi.hw3-natok`
+WHERE DATE(lpep_dropoff_datetime_corrected) BETWEEN '2022-06-01' AND '2022-06-30';
+
+
+- SELECT COUNT(*) FROM `dezoom-412200.ny_taxi.hw3-optimized`;
+SELECT COUNT(*) FROM `dezoom-412200.ny_taxi.hw3-natok`;
