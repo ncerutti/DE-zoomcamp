@@ -190,3 +190,5 @@ magic-zoomcamp
 *.csv
 
 *playground*.ipynb
+
+.secrets/
